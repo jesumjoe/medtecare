@@ -1,0 +1,17 @@
+{
+  "equipment_id": "EQ-001",
+  "equipment_type": "CNC Milling Machine",
+  "risk_score": 87.0,
+  "predicted_failure": "Spindle Bearing Thermal Degradation & Seizure Risk",
+  "model_confidence": 0.94,
+  "important_features": [
+    "Bearing Temperature (+34% over 48h)",
+    "Vibration RMS (8.7 mm/s vs 4.5 limit)",
+    "Sustained Spindle Load (>90% for 6 cycles)"
+  ],
+  "telemetry": [
+    { "name": "Bearing Temp", "value": 112.0, "unit": "°C", "normal_range": [40.0, 85.0] },
+    { "name": "Vibration RMS", "value": 8.7, "unit": "mm/s", "normal_range": [0.0, 4.5] },
+    { "name": "Spindle Load", "value": 91.0, "unit": "%", "normal_range": [0.0, 80.0] }
+  ]
+}

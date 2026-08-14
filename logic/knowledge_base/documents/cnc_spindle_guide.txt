@@ -1,0 +1,7 @@
+[DEMO KNOWLEDGE BASE - OEM MANUAL]
+Title: CNC Spindle Load & Coolant Flow Operational Manual
+Section: Section 4 - Sustained Load Derating & Thermal Expansion
+
+Sustained spindle loading exceeding 90% for more than 4 consecutive production cycles creates high localized thermal friction.
+If coolant flow drops below 3.0 L/min or bearing temp rises > 15°C/day, emergency inspection of coolant pump line and heat exchanger is required.
+Failure to reduce load risks spindle shaft distortion and permanent motor winding burnout.

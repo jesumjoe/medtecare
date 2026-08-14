@@ -1,0 +1,7 @@
+[DEMO KNOWLEDGE BASE - OEM MANUAL]
+Title: Industrial Hydraulic Press B-12 Service Guide
+Section: Section 12 - Viscosity Degradation & Cylinder Overpressure
+
+Standard hydraulic oil ISO VG 46 viscosity must remain between 32 cSt and 68 cSt.
+Oil viscosity below 30 cSt leads to pump cavitation, internal seal leakage, and cylinder pressure spikes exceeding 3000 PSI.
+Required Maintenance: Immediate oil replacement, fluid flushing, and seal kit replacement (Part #HP-7740).

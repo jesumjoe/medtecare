@@ -1,0 +1,7 @@
+[DEMO KNOWLEDGE BASE - OEM MANUAL]
+Title: Robotic Welding & Packaging Arm Calibration Guide
+Section: Section 3 - Joint Torque Drift & Servo Motor Recalibration
+
+Arm position error exceeding 1.0 mm tolerance or joint torque drift indicates harmonic drive gear backlash or encoder misalignment.
+At high cycle counts (>450,000 cycles), axis 3 and axis 4 servo motors require full mechanical recalibration and zero-point alignment.
+Inspection frequency: Every 50,000 cycles or immediately upon position error alert.

@@ -1,0 +1,8 @@
+[DEMO KNOWLEDGE BASE - OEM MANUAL]
+Title: SKF Rolling Bearings Technical Maintenance Handbook
+Section: Chapter 7 - Thermal Degradation & Spindle Bearing Wear
+
+When main spindle bearing operating temperature exceeds 85°C, thermal degradation accelerates exponentially. 
+Operating temperatures above 100°C indicate severe lubricant breakdown and outer raceway flaking.
+Vibration RMS threshold: ISO 10816-3 Zone D specifies RMS velocity > 4.5 mm/s as critical bearing damage.
+Immediate Action: Derate spindle speed by 40%. Perform main bearing replacement (SKF 7208 BECBP) within 24 hours.
