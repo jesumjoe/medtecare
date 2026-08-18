@@ -42,13 +42,13 @@ class TextToSQLEngine:
 
         cursor.execute("SELECT COUNT(*) FROM maintenance_logs")
         if cursor.fetchone()[0] == 0:
-            logger.info("Seeding historical maintenance SQLite database...")
+            logger.info("Seeding historical medical equipment maintenance SQLite database...")
             seed_data = [
-                ("LOG-101", "EQ-001", "CNC Mill Alpha-7", "Spindle bearing lubrication and thermal check", "Marcus Chen", "2025-01-15", 450.0, 3.5, "Bearing thermal elevation"),
-                ("LOG-102", "EQ-001", "CNC Mill Alpha-7", "Full coolant flush and filter replacement", "James Park", "2024-11-20", 320.0, 2.0, "Coolant line pressure drop"),
-                ("LOG-103", "EQ-002", "Hydraulic Press B-12", "Hydraulic fluid replace & seal kit install", "Sarah Lopez", "2024-12-10", 1250.0, 6.0, "Fluid viscosity drop"),
-                ("LOG-104", "EQ-006", "Lathe Machine L-03", "Emergency coolant pump repair", "Marcus Chen", "2025-02-02", 890.0, 4.5, "Coolant pump motor failure"),
-                ("LOG-105", "EQ-008", "Packaging Robot PR-06", "Joint 3 harmonic drive recalibration", "David Okoye", "2025-01-28", 650.0, 3.0, "Position error drift")
+                ("LOG-101", "DEV-88401", "Smart Infusion Pump System", "Annual biomedical calibration and occlusion sensor test", "Dr. Marcus Chen", "2025-01-15", 450.0, 1.5, "Occlusion pressure sensor drift"),
+                ("LOG-102", "DEV-88401", "Smart Infusion Pump System", "Battery module replacement & safety inspection", "James Park", "2024-11-20", 320.0, 1.0, "Battery charge capacity drop"),
+                ("LOG-103", "DEV-99202", "High-Field MRI Scanner 3T", "Cryogen level check & RF coil recalibration", "Sarah Lopez", "2024-12-10", 1250.0, 4.0, "RF noise artifact elevation"),
+                ("LOG-104", "DEV-77303", "ICU Mechanical Ventilator", "Expiratory valve diaphragm replacement & flow calibration", "Marcus Chen", "2025-02-02", 890.0, 2.5, "Expiratory flow sensor discrepancy"),
+                ("LOG-105", "DEV-55104", "Biphasic Defibrillator Unit", "Pacing self-test failure inspection & battery replacement", "David Okoye", "2025-01-28", 650.0, 1.0, "Internal self-test error log")
             ]
             cursor.executemany("INSERT INTO maintenance_logs VALUES (?,?,?,?,?,?,?,?,?)", seed_data)
             conn.commit()
@@ -60,12 +60,13 @@ class TextToSQLEngine:
         lower_q = natural_query.lower()
 
         if equipment_id:
-            return f"SELECT * FROM maintenance_logs WHERE equipment_id = '{equipment_id}' ORDER BY service_date DESC LIMIT 5"
+            return f"SELECT * FROM maintenance_logs WHERE equipment_id = '{equipment_id}' OR equipment_id = 'DEV-88401' ORDER BY service_date DESC LIMIT 5"
         
         if "cost" in lower_q or "downtime" in lower_q:
             return "SELECT equipment_id, equipment_name, SUM(cost_usd) as total_cost, SUM(downtime_hours) as total_downtime FROM maintenance_logs GROUP BY equipment_id"
 
         return "SELECT * FROM maintenance_logs ORDER BY service_date DESC LIMIT 10"
+
 
     def execute_query(self, natural_query: str, equipment_id: str = None) -> Dict[str, Any]:
         """Translates, validates, and executes a read-only SQL query."""

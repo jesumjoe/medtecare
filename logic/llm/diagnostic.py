@@ -29,24 +29,57 @@ class LLMDiagnosticReasoner:
         important_features: List[str],
         telemetry: List[Dict[str, Any]],
         retrieved_documents: List[Dict[str, Any]],
-        historical_context: List[Dict[str, Any]]
+        historical_context: List[Dict[str, Any]],
+        device_context: Dict[str, Any] = None
     ) -> DiagnosticResult:
         """Synthesizes all evidence layers into a complete DiagnosticResult object."""
         
         evidence: List[EvidenceCategory] = []
+        ctx = device_context or {}
 
-        # 1. Model Evidence
+        # 1. Model Evidence Preservation (Squad A CatBoost & SHAP Drivers)
+        prob = ctx.get("future_event_probability")
+        if prob is None:
+            prob = (risk_score / 100.0) if risk_score is not None else 0.5
+        model_conf = model_confidence if model_confidence is not None else 0.85
+
         evidence.append(EvidenceCategory(
             type="MODEL_EVIDENCE",
-            description=f"ML Risk Score {risk_score:.1f}/100 with {model_confidence*100:.0f}% confidence: {predicted_failure}",
-            source="Squad A Predictive Model",
-            confidence=model_confidence
+            description=f"Squad A CatBoost Risk Score: {risk_score:.1f}/100 (Future Event Probability: {prob:.2f}, Confidence: {model_conf*100:.0f}%): {predicted_failure}",
+            source="Squad A CatBoost Predictive Model",
+            confidence=model_conf
         ))
+
+
+        # Device Metadata Model Evidence
+        classification = ctx.get("classification", "Medical Device")
+        risk_class = ctx.get("risk_class", "Class II")
+        manufacturer = ctx.get("manufacturer", "OEM")
+        recalls = ctx.get("previous_recalls", 0)
+        events = ctx.get("previous_events", 0)
+        notices = ctx.get("previous_safety_notices", 0)
+        years = ctx.get("years_in_service", 0.0)
+
+        evidence.append(EvidenceCategory(
+            type="MODEL_EVIDENCE",
+            description=f"Device Profile: {classification} ({risk_class}) by {manufacturer} | Operational Age: {years:.1f} years",
+            source="Organizer Dataset Attributes",
+            confidence=1.0
+        ))
+
+        if recalls > 0 or events > 0 or notices > 0:
+            evidence.append(EvidenceCategory(
+                type="MODEL_EVIDENCE",
+                description=f"Historical Safety Metrics: Recalls: {recalls}, Adverse Events: {events}, Safety Notices: {notices}",
+                source="Historical Safety Register",
+                confidence=1.0
+            ))
+
         for feat in important_features:
             evidence.append(EvidenceCategory(
                 type="MODEL_EVIDENCE",
-                description=f"Telemetry Anomaly Driver: {feat}",
-                source="Sensor Telemetry Stream",
+                description=f"SHAP Feature Driver: {feat}",
+                source="Squad A SHAP Explainability Engine",
                 confidence=0.92
             ))
 
@@ -55,7 +88,7 @@ class LLMDiagnosticReasoner:
             evidence.append(EvidenceCategory(
                 type="DOCUMENT_EVIDENCE",
                 description=f"{doc.get('title', 'OEM Manual')} ({doc.get('section', '')}): {doc.get('content', '')[:120]}...",
-                source=doc.get('title', 'OEM Maintenance Manual'),
+                source=doc.get('title', 'OEM Guidance Document'),
                 confidence=doc.get('relevance_score', 0.85)
             ))
 
@@ -73,7 +106,7 @@ class LLMDiagnosticReasoner:
             try:
                 live_result = self._generate_live_llm_diagnosis(
                     equipment_id, equipment_type, risk_score, predicted_failure,
-                    model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence
+                    model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
                 )
                 if live_result:
                     logger.info("Successfully generated Live LLM diagnostic synthesis!")
@@ -84,7 +117,7 @@ class LLMDiagnosticReasoner:
         # 5. Rule-Based Fallback Reasoning Engine
         return self._generate_fallback_diagnosis(
             equipment_id, equipment_type, risk_score, predicted_failure,
-            model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence
+            model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
         )
 
     def _generate_live_llm_diagnosis(
@@ -98,22 +131,26 @@ class LLMDiagnosticReasoner:
         telemetry: List[Dict[str, Any]],
         retrieved_documents: List[Dict[str, Any]],
         historical_context: List[Dict[str, Any]],
-        evidence: List[EvidenceCategory]
+        evidence: List[EvidenceCategory],
+        ctx: Dict[str, Any]
     ) -> DiagnosticResult:
         """Executes Live LLM API call (OpenAI or Groq) for real-time diagnostic reasoning."""
         
         user_prompt = f"""
-Analyze the following equipment failure context and generate a JSON diagnostic response.
+Analyze the following medical device risk prediction context and generate a JSON diagnostic response.
 
-EQUIPMENT DETAILS:
+MEDICAL DEVICE DETAILS:
 - ID: {equipment_id}
-- Type: {equipment_type}
-- ML Risk Score: {risk_score}/100 (Confidence: {model_confidence*100:.0f}%)
-- Predicted Failure Mode: {predicted_failure}
-- Key Feature Anomaly Drivers: {', '.join(important_features)}
-- Telemetry Readouts: {json.dumps(telemetry)}
+- Name/Type: {equipment_type}
+- Classification: {ctx.get('classification', 'Medical Device')}
+- Risk Class: {ctx.get('risk_class', 'Class II')}
+- Manufacturer: {ctx.get('manufacturer', 'OEM')}
+- Squad A CatBoost Risk Score: {risk_score}/100 (Future Event Probability: {(risk_score/100.0):.2f}, Confidence: {model_confidence*100:.0f}%)
+- Predicted Assessment: {predicted_failure}
+- SHAP Feature Drivers: {', '.join(important_features)}
+- Historical Safety Metrics: Recalls: {ctx.get('previous_recalls', 0)}, Events: {ctx.get('previous_events', 0)}, Notices: {ctx.get('previous_safety_notices', 0)}
 
-RETRIEVED OEM MANUAL EXCERPTS (RAG):
+RETRIEVED OEM / REGULATORY MANUAL EXCERPTS (RAG):
 {json.dumps([d.get('content', '') for d in retrieved_documents])}
 
 HISTORICAL WORK ORDERS (Text-to-SQL):
@@ -121,13 +158,13 @@ HISTORICAL WORK ORDERS (Text-to-SQL):
 
 Respond ONLY with a valid JSON object matching this exact schema:
 {{
-  "diagnosis": "Short high-level diagnostic title",
-  "explanation": "Detailed professional diagnostic synthesis narrative",
+  "diagnosis": "Short high-level diagnostic title using probabilistic language",
+  "explanation": "Detailed professional diagnostic synthesis narrative explaining future-event risk",
   "probable_root_causes": [
-    {{ "cause": "Cause name", "likelihood": 0.85, "description": "Explanation" }}
+    {{ "cause": "Risk factor name", "likelihood": 0.85, "description": "Explanation of risk factor" }}
   ],
   "recommended_actions": [
-    {{ "step": 1, "title": "Action title", "description": "Detailed step", "timeframe": "Immediate (<1h)", "urgency": "CRITICAL" }}
+    {{ "step": 1, "title": "Safety & Inspection Action", "description": "Detailed step", "timeframe": "Immediate (<4h)", "urgency": "CRITICAL" }}
   ],
   "maintenance_priority": "CRITICAL"
 }}
@@ -146,7 +183,6 @@ Respond ONLY with a valid JSON object matching this exact schema:
         raw_json = completion.choices[0].message.content
         data = json.loads(raw_json)
 
-        # Add AI Inference Evidence tag
         evidence.append(EvidenceCategory(
             type="AI_INFERENCE",
             description=f"Live LLM diagnostic inference generated by {llm_provider.provider.upper()} model ({llm_provider.model}).",
@@ -163,7 +199,7 @@ Respond ONLY with a valid JSON object matching this exact schema:
             equipment_type=equipment_type,
             risk_score=risk_score,
             predicted_failure=predicted_failure,
-            diagnosis=data.get("diagnosis", f"CRITICAL RISK: {predicted_failure}"),
+            diagnosis=data.get("diagnosis", f"HIGH RISK: {predicted_failure}"),
             probable_root_causes=probable_causes,
             evidence=evidence,
             historical_context=historical_context,
@@ -187,58 +223,70 @@ Respond ONLY with a valid JSON object matching this exact schema:
         telemetry: List[Dict[str, Any]],
         retrieved_documents: List[Dict[str, Any]],
         historical_context: List[Dict[str, Any]],
-        evidence_list: List[EvidenceCategory]
+        evidence_list: List[EvidenceCategory],
+        ctx: Dict[str, Any]
     ) -> DiagnosticResult:
         """Deterministic diagnostic reasoning fallback when LLM API is unreachable."""
 
         priority = "CRITICAL" if risk_score >= 80 else ("HIGH" if risk_score >= 60 else "MEDIUM")
+        prob = risk_score / 100.0
 
         evidence_list.append(EvidenceCategory(
             type="AI_INFERENCE",
-            description="Synthetic root cause inference derived from sensor anomalies and OEM manual alignment.",
+            description="Synthetic risk factor inference derived from Squad A prediction drivers and historical records.",
             source="Squad B Diagnostic Agent",
             confidence=0.88
         ))
 
         probable_causes = [
             ProbableRootCause(
-                cause="Mechanical Wear & Vibration Velocity Spike",
-                likelihood=0.88 if risk_score > 75 else 0.65,
-                description="Bearing raceway micro-flaking resulting in high vibration velocity."
+                cause="Historical Safety & Recall Driver Alignment",
+                likelihood=round(min(0.95, prob * 1.05), 2),
+                description="High alignment between current device features and historical adverse event/recall risk indicators."
             ),
             ProbableRootCause(
-                cause="Thermal Elevation & Viscosity Breakdown",
+                cause="Lifecycle Degradation & Cumulative Operational Exposure",
                 likelihood=0.82,
-                description="Operating temperature elevation causing lubricant breakdown."
+                description="Extended service history contributing to elevated predicted future-event probability."
             )
         ]
 
         actions = [
             RecommendedAction(
                 step=1,
-                title="Immediate Operating Derating",
-                description="Derate operational load by 35-50% immediately to halt thermal friction rise.",
-                timeframe="Immediate (< 1 hour)",
+                title="Safety & Operational Review",
+                description="Perform immediate safety review and prioritize routine preventative maintenance inspection.",
+                timeframe="Immediate (< 4 hours)",
                 urgency=priority
             ),
             RecommendedAction(
                 step=2,
-                title="Inspect & Replace Worn Components",
-                description="Perform full inspection of raceways/seals, flush fluid line, and replace worn assembly.",
+                title="Historical Event & Safety Notice Audit",
+                description="Cross-reference device serial/model against manufacturer safety notices and prior recall bulletins.",
                 timeframe="Within 24 Hours",
+                urgency=priority
+            ),
+            RecommendedAction(
+                step=3,
+                title="Increased Diagnostic Monitoring & Escalation",
+                description="Increase clinical operational monitoring and escalate device assessment to certified biomedical engineering staff.",
+                timeframe="Within 48 Hours",
                 urgency=priority
             )
         ]
 
         citations = [d.get("title", "OEM Document") for d in retrieved_documents[:3]]
 
+        drivers_text = ", ".join(important_features) if important_features else "None reported"
+
         explanation = (
-            f"AI Diagnostic Report for {equipment_id} ({equipment_type}):\n\n"
-            f"Squad A predictive model output indicates a risk score of {risk_score:.1f}/100 ({model_confidence*100:.0f}% confidence) for '{predicted_failure}'.\n"
-            f"Key anomaly drivers: {', '.join(important_features)}.\n\n"
-            f"OEM manual cross-referencing confirms thermal breakdown thresholds.\n"
-            f"Historical repair records indicate past occurrences were resolved via bearing replace and coolant flushing.\n\n"
-            f"Recommended Action: Immediate load derating and 24-hour maintenance window scheduling."
+            f"AI Diagnostic Assessment for {equipment_id} ({equipment_type}):\n\n"
+            f"Squad A CatBoost predictive model output indicates a predicted future-event risk score of {risk_score:.1f}/100 "
+            f"(Future Event Probability: {prob:.2f}, Model Confidence: {model_confidence*100:.0f}%).\n"
+            f"Key SHAP Feature Drivers: {drivers_text}.\n\n"
+            f"Risk Interpretation: The device displays an elevated predicted risk of a future operational event based on historical "
+            f"recall and safety notice patterns. Probabilistic risk indicators warrant proactive maintenance inspection prior to critical clinical usage.\n\n"
+            f"Recommended Action: Initiate safety review and schedule biomedical engineering inspection within standard risk mitigation protocols."
         )
 
         return DiagnosticResult(
@@ -246,7 +294,7 @@ Respond ONLY with a valid JSON object matching this exact schema:
             equipment_type=equipment_type,
             risk_score=risk_score,
             predicted_failure=predicted_failure,
-            diagnosis=f"CRITICAL RISK: {predicted_failure} (Score: {risk_score:.1f}/100)",
+            diagnosis=f"HIGH RISK: {predicted_failure} (Probability: {prob:.2f})",
             probable_root_causes=probable_causes,
             evidence=evidence_list,
             historical_context=historical_context,
@@ -258,5 +306,6 @@ Respond ONLY with a valid JSON object matching this exact schema:
             requires_human_review=True,
             errors=[]
         )
+
 
 llm_diagnostic_reasoner = LLMDiagnosticReasoner()

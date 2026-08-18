@@ -79,13 +79,22 @@ class DiagnosticEngine:
         # Execute LangGraph workflow
         final_state = self.graph.invoke(initial_state)
 
+        dev_id = final_state.get("device_id") or final_state.get("equipment_id", "DEV-88401")
+        dev_name = final_state.get("device_name") or final_state.get("equipment_type", "Medical Equipment")
+        risk_score = final_state.get("risk_score", 0.0)
+        prob = final_state.get("future_event_probability")
+        if prob is None:
+            prob = (risk_score / 100.0) if risk_score is not None else 0.5
+        pred_failure = final_state.get("predicted_failure", "medical-device future-event risk")
+
         # Build clean DiagnosticResult Pydantic output object
         return DiagnosticResult(
-            equipment_id=final_state.get("equipment_id", "EQ-001"),
-            equipment_type=final_state.get("equipment_type", "Industrial Machine"),
-            risk_score=final_state.get("risk_score", 0.0),
-            predicted_failure=final_state.get("predicted_failure", "Anomaly"),
-            diagnosis=f"CRITICAL RISK: {final_state.get('predicted_failure', '')} (Score: {final_state.get('risk_score', 0.0):.1f}/100)",
+            equipment_id=dev_id,
+            equipment_type=dev_name,
+            risk_score=risk_score,
+            predicted_failure=pred_failure,
+            diagnosis=f"HIGH RISK: {pred_failure} (Probability: {prob:.2f})",
+
             probable_root_causes=[
                 ProbableRootCause(**c) if isinstance(c, dict) else c
                 for c in final_state.get("probable_root_causes", [])
@@ -106,3 +115,4 @@ class DiagnosticEngine:
             requires_human_review=final_state.get("requires_human_review", True),
             errors=final_state.get("errors", [])
         )
+
