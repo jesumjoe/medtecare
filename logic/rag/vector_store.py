@@ -1,28 +1,32 @@
 """
-Local Vector Store Service for Dense Retrieval.
-Provides cosine similarity search over embedded document chunks.
-Compatible interface for future Qdrant/Pinecone/ChromaDB swapping.
+Local Vector Store Service for Dense Vector Retrieval.
+Provides cosine similarity search over embedded medical device records and OEM documentation.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import numpy as np
 
 class LocalVectorStore:
-    """In-memory Vector Storage with Cosine Similarity Search."""
+    """In-memory Vector Store with Cosine Similarity Search."""
 
     def __init__(self):
         self.vectors: List[np.ndarray] = []
         self.documents: List[Dict[str, Any]] = []
 
     def add_documents(self, documents: List[Dict[str, Any]], embeddings: List[List[float]]):
-        """Adds document chunks and their corresponding embeddings to vector index."""
+        """Adds document chunks and corresponding dense vector embeddings."""
         for doc, emb in zip(documents, embeddings):
             self.documents.append(doc)
             self.vectors.append(np.array(emb, dtype=np.float32))
 
-    def similarity_search(self, query_vector: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
-        """Performs cosine similarity search against query vector."""
-        if not self.vectors:
+    def similarity_search(
+        self,
+        query_vector: List[float],
+        top_k: int = 5,
+        filter_metadata: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """Performs cosine similarity search against query vector with optional metadata filtering."""
+        if not self.vectors or not self.documents:
             return []
 
         q_vec = np.array(query_vector, dtype=np.float32)
@@ -32,6 +36,14 @@ class LocalVectorStore:
 
         scores = []
         for idx, doc_vec in enumerate(self.vectors):
+            doc = self.documents[idx]
+
+            # Optional metadata filtering
+            if filter_metadata:
+                match = all(doc.get(k) == v for k, v in filter_metadata.items())
+                if not match:
+                    continue
+
             d_norm = np.linalg.norm(doc_vec)
             if d_norm == 0:
                 score = 0.0
@@ -43,15 +55,20 @@ class LocalVectorStore:
 
         results = []
         for idx, score in scores[:top_k]:
-            doc = self.documents[idx].copy()
-            doc["relevance_score"] = round(score, 4)
-            doc["retrieval_method"] = "dense_vector"
-            results.append(doc)
+            doc_copy = self.documents[idx].copy()
+            doc_copy["relevance_score"] = round(float(score), 4)
+            doc_copy["retrieval_method"] = "dense_vector"
+            results.append(doc_copy)
 
         return results
 
     def clear(self):
+        """Clears all vectors and indexed documents."""
         self.vectors.clear()
         self.documents.clear()
+
+    def __len__(self) -> int:
+        return len(self.documents)
+
 
 vector_store = LocalVectorStore()

@@ -83,16 +83,19 @@ class LLMDiagnosticReasoner:
                 confidence=0.92
             ))
 
-        # 2. Document Evidence
+        # 2. Document & Historical Evidence from RAG
         for doc in retrieved_documents:
+            ev_type = doc.get("evidence_type", "DOCUMENT_EVIDENCE")
+            if ev_type not in ["MODEL_EVIDENCE", "DOCUMENT_EVIDENCE", "HISTORICAL_EVIDENCE", "AI_INFERENCE"]:
+                ev_type = "DOCUMENT_EVIDENCE"
             evidence.append(EvidenceCategory(
-                type="DOCUMENT_EVIDENCE",
+                type=ev_type,
                 description=f"{doc.get('title', 'OEM Manual')} ({doc.get('section', '')}): {doc.get('content', '')[:120]}...",
-                source=doc.get('title', 'OEM Guidance Document'),
+                source=doc.get('source_type') or doc.get('title', 'OEM Guidance Document'),
                 confidence=doc.get('relevance_score', 0.85)
             ))
 
-        # 3. Historical Evidence
+        # 3. Historical Evidence from Text-to-SQL
         for hist in historical_context:
             evidence.append(EvidenceCategory(
                 type="HISTORICAL_EVIDENCE",
@@ -106,7 +109,7 @@ class LLMDiagnosticReasoner:
             try:
                 live_result = self._generate_live_llm_diagnosis(
                     equipment_id, equipment_type, risk_score, predicted_failure,
-                    model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
+                    model_conf, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
                 )
                 if live_result:
                     logger.info("Successfully generated Live LLM diagnostic synthesis!")
@@ -117,7 +120,7 @@ class LLMDiagnosticReasoner:
         # 5. Rule-Based Fallback Reasoning Engine
         return self._generate_fallback_diagnosis(
             equipment_id, equipment_type, risk_score, predicted_failure,
-            model_confidence, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
+            model_conf, important_features, telemetry, retrieved_documents, historical_context, evidence, ctx
         )
 
     def _generate_live_llm_diagnosis(
