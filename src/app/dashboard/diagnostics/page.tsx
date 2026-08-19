@@ -11,7 +11,7 @@ import {
   Cell,
   Tooltip,
 } from "recharts";
-import { Bot, BookOpen, ChevronDown, ExternalLink } from "lucide-react";
+import { Bot, BookOpen, ChevronDown, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { GlassCard } from "@/components/shared/glass-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RiskGauge } from "@/components/shared/risk-gauge";
@@ -23,11 +23,21 @@ import {
 } from "@/lib/mock-data";
 import type { Equipment } from "@/lib/mock-data";
 
-function SHAPChart() {
-  const data = featureImportanceData.map((f) => ({
+function SHAPChart({ result }: { result: any }) {
+  // Use mock data if no result, otherwise construct from result
+  let data = featureImportanceData.map((f) => ({
     ...f,
     absImportance: Math.abs(f.importance),
   }));
+
+  if (result && result.probable_root_causes) {
+    data = result.probable_root_causes.map((rc: any) => ({
+      feature: rc.cause,
+      importance: rc.likelihood,
+      absImportance: Math.abs(rc.likelihood),
+      direction: "positive"
+    }));
+  }
 
   return (
     <GlassCard hover={false}>
@@ -48,7 +58,7 @@ function SHAPChart() {
               tick={{ fill: "#94A3B8", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              domain={[0, 0.5]}
+              domain={[0, "auto"]}
             />
             <YAxis
               type="category"
@@ -102,7 +112,23 @@ function SHAPChart() {
   );
 }
 
-function DiagnosticChat() {
+function DiagnosticChat({ result }: { result: any }) {
+  let messages = diagnosticMessages;
+  
+  if (result) {
+    const aiMessage = `## Diagnosis\n${result.diagnosis}\n\n` +
+      `## Explanation\n${result.explanation}\n\n` +
+      `## Recommended Actions\n` + result.recommended_actions.map((ra: any) => `- **${ra.title}**: ${ra.description} (${ra.timeframe}, ${ra.urgency})`).join('\n') +
+      `\n\n**Confidence**: ${(result.confidence * 100).toFixed(1)}%\n` +
+      `**Maintenance Priority**: ${result.maintenance_priority}\n` +
+      `**Requires Human Review**: ${result.requires_human_review ? "Yes" : "No"}`;
+      
+    messages = [
+      { role: "system", content: "Squad B Diagnostic Engine initialized. Analyzing ML output, history, and evidence." },
+      { role: "agent", content: aiMessage }
+    ];
+  }
+
   return (
     <GlassCard hover={false} className="flex flex-col">
       <div className="mb-4 flex items-center gap-2">
@@ -120,7 +146,7 @@ function DiagnosticChat() {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto max-h-96">
-        {diagnosticMessages.map((msg, i) => (
+        {messages.map((msg, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 10 }}
@@ -171,7 +197,19 @@ function DiagnosticChat() {
   );
 }
 
-function ManualReferences() {
+function ManualReferences({ result }: { result: any }) {
+  let refs = manualReferences;
+  
+  if (result && result.citations && result.citations.length > 0) {
+    refs = result.citations.map((cite: string, idx: number) => ({
+      id: `cite-${idx}`,
+      title: "Extracted Reference",
+      relevance: 0.95,
+      section: "RAG Retrieval",
+      excerpt: cite
+    }));
+  }
+
   return (
     <GlassCard hover={false}>
       <div className="mb-4 flex items-center gap-2">
@@ -182,7 +220,7 @@ function ManualReferences() {
       </div>
 
       <div className="space-y-3">
-        {manualReferences.map((ref, i) => (
+        {refs.map((ref, i) => (
           <motion.div
             key={ref.id}
             initial={{ opacity: 0, x: -10 }}
@@ -221,6 +259,50 @@ export default function DiagnosticsPage() {
     equipmentList.find((e) => e.status === "critical") || equipmentList[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const runDiagnostics = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const payload = {
+        device_id: selectedEquipment.id,
+        device_name: selectedEquipment.name,
+        future_event_probability: selectedEquipment.riskScore / 100,
+        prediction: selectedEquipment.riskScore >= 50 ? 1 : 0,
+        risk_level: selectedEquipment.status.toUpperCase(),
+        model_confidence: 0.88,
+        classification: "Active Equipment",
+        risk_class: "Class IIb",
+        feature_drivers: [
+          { feature: "previous_recalls", impact: 0.42 },
+          { feature: "previous_safety_notices", impact: 0.28 },
+          { feature: "years_in_service", impact: 0.15 }
+        ]
+      };
+      
+      const response = await fetch("http://localhost:8000/api/v1/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData?.error?.message || errData?.detail || "Diagnostic API failed");
+      }
+      
+      const data = await response.json();
+      setDiagnosticResult(data);
+    } catch (err: any) {
+      setError(err.message || "An error occurred while connecting to the backend.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -235,80 +317,100 @@ export default function DiagnosticsPage() {
           </p>
         </div>
 
-        {/* Equipment dropdown */}
-        <div className="relative">
+        <div className="flex items-center gap-3">
           <button
-            type="button"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="inline-flex items-center gap-2 rounded-lg border border-sentinel-glass-border bg-sentinel-glass px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:border-sentinel-blue/30"
+            onClick={runDiagnostics}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-lg bg-sentinel-blue px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-sentinel-blue-light disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div
-              className="h-2 w-2 rounded-full"
-              style={{
-                background:
-                  selectedEquipment.status === "critical"
-                    ? "var(--sentinel-critical)"
-                    : selectedEquipment.status === "warning"
-                    ? "var(--sentinel-warning)"
-                    : "var(--sentinel-healthy)",
-              }}
-            />
-            {selectedEquipment.name}
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+            {isLoading ? "Analyzing..." : "Run AI Diagnostics"}
           </button>
+          
+          {/* Equipment dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="inline-flex items-center gap-2 rounded-lg border border-sentinel-glass-border bg-sentinel-glass px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:border-sentinel-blue/30"
+            >
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{
+                  background:
+                    selectedEquipment.status === "critical"
+                      ? "var(--sentinel-critical)"
+                      : selectedEquipment.status === "warning"
+                      ? "var(--sentinel-warning)"
+                      : "var(--sentinel-healthy)",
+                }}
+              />
+              {selectedEquipment.name}
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </button>
 
-          {dropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
-              <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-sentinel-glass-border bg-sentinel-bg-to/95 p-2 shadow-xl backdrop-blur-xl">
-                {equipmentList.map((eq) => (
-                  <button
-                    key={eq.id}
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-sentinel-glass"
-                    onClick={() => {
-                      setSelectedEquipment(eq);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    <div
-                      className="h-2 w-2 rounded-full"
-                      style={{
-                        background:
-                          eq.status === "critical"
-                            ? "var(--sentinel-critical)"
-                            : eq.status === "warning"
-                            ? "var(--sentinel-warning)"
-                            : "var(--sentinel-healthy)",
+            {dropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-sentinel-glass-border bg-sentinel-bg-to/95 p-2 shadow-xl backdrop-blur-xl">
+                  {equipmentList.map((eq) => (
+                    <button
+                      key={eq.id}
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-sentinel-glass"
+                      onClick={() => {
+                        setSelectedEquipment(eq);
+                        setDropdownOpen(false);
+                        setDiagnosticResult(null); // Reset results when switching
+                        setError(null);
                       }}
-                    />
-                    <span className="truncate">{eq.name}</span>
-                    <StatusBadge variant={eq.status} className="ml-auto">
-                      {eq.riskScore}
-                    </StatusBadge>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+                    >
+                      <div
+                        className="h-2 w-2 rounded-full"
+                        style={{
+                          background:
+                            eq.status === "critical"
+                              ? "var(--sentinel-critical)"
+                              : eq.status === "warning"
+                              ? "var(--sentinel-warning)"
+                              : "var(--sentinel-healthy)",
+                        }}
+                      />
+                      <span className="truncate">{eq.name}</span>
+                      <StatusBadge variant={eq.status} className="ml-auto">
+                        {eq.riskScore}
+                      </StatusBadge>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
+      
+      {error && (
+        <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </div>
+      )}
 
       {/* Equipment overview bar */}
       <GlassCard hover={false} className="flex flex-col items-center gap-6 sm:flex-row">
-        <RiskGauge score={selectedEquipment.riskScore} size={120} />
+        <RiskGauge score={diagnosticResult?.risk_score || selectedEquipment.riskScore} size={120} />
 
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-foreground">
-              {selectedEquipment.name}
+              {diagnosticResult?.equipment_id || selectedEquipment.name}
             </h2>
-            <StatusBadge variant={selectedEquipment.status} pulse size="md">
-              {selectedEquipment.status}
+            <StatusBadge variant={diagnosticResult?.maintenance_priority?.toLowerCase() || selectedEquipment.status} pulse size="md">
+              {diagnosticResult?.maintenance_priority || selectedEquipment.status}
             </StatusBadge>
           </div>
           <p className="text-sm text-muted-foreground">
-            {selectedEquipment.type} — {selectedEquipment.location}
+            {diagnosticResult?.equipment_type || selectedEquipment.type} — {selectedEquipment.location}
           </p>
 
           {/* Sensor readings */}
@@ -341,12 +443,12 @@ export default function DiagnosticsPage() {
 
       {/* Main content grid */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <SHAPChart />
-        <DiagnosticChat />
+        <SHAPChart result={diagnosticResult} />
+        <DiagnosticChat result={diagnosticResult} />
       </div>
 
       {/* Manual references */}
-      <ManualReferences />
+      <ManualReferences result={diagnosticResult} />
     </div>
   );
 }
