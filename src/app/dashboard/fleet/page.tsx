@@ -1,11 +1,24 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared/glass-card";
 import { Server } from "lucide-react";
 import { FleetGrid } from "@/components/dashboard/fleet-grid";
-import { equipmentList } from "@/lib/mock-data";
+import { equipmentList as mockEquipmentList } from "@/lib/mock-data";
+import type { Equipment } from "@/lib/mock-data";
+import { fetchDevices } from "@/lib/api";
 
 export default function FleetPage() {
+  const [equipmentList, setEquipmentList] = useState<Equipment[]>(mockEquipmentList);
+
+  useEffect(() => {
+    fetchDevices(50).then((devices) => {
+      if (devices.length > 0) {
+        setEquipmentList(devices);
+      }
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -18,3 +31,4 @@ export default function FleetPage() {
     </div>
   );
 }
+

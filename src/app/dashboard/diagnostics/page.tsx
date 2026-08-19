@@ -16,12 +16,13 @@ import { GlassCard } from "@/components/shared/glass-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RiskGauge } from "@/components/shared/risk-gauge";
 import {
-  equipmentList,
+  equipmentList as mockEquipmentList,
   featureImportanceData,
   diagnosticMessages,
   manualReferences,
 } from "@/lib/mock-data";
 import type { Equipment } from "@/lib/mock-data";
+import { fetchDevices, runDiagnosticsAPI } from "@/lib/api";
 
 function SHAPChart({ result }: { result: any }) {
   // Use mock data if no result, otherwise construct from result
@@ -124,8 +125,8 @@ function DiagnosticChat({ result }: { result: any }) {
       `**Requires Human Review**: ${result.requires_human_review ? "Yes" : "No"}`;
       
     messages = [
-      { role: "system", content: "Squad B Diagnostic Engine initialized. Analyzing ML output, history, and evidence." },
-      { role: "agent", content: aiMessage }
+      { role: "system" as const, content: "Squad B Diagnostic Engine initialized. Analyzing ML output, history, and evidence.", timestamp: new Date().toISOString() },
+      { role: "agent" as const, content: aiMessage, timestamp: new Date().toISOString() }
     ];
   }
 
@@ -255,9 +256,9 @@ function ManualReferences({ result }: { result: any }) {
 }
 
 export default function DiagnosticsPage() {
-  const [equipmentData, setEquipmentData] = useState<Equipment[]>(equipmentList);
+  const [equipmentData, setEquipmentData] = useState<Equipment[]>(mockEquipmentList);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment>(
-    equipmentList.find((e) => e.status === "critical") || equipmentList[0]
+    mockEquipmentList.find((e) => e.status === "critical") || mockEquipmentList[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
@@ -267,38 +268,19 @@ export default function DiagnosticsPage() {
 
   useEffect(() => {
     // Fetch live ML-generated devices from the backend API
-    fetch("http://localhost:8000/api/v1/devices")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.devices && data.devices.length > 0) {
-          setEquipmentData(data.devices);
-          setSelectedEquipment(data.devices[0]);
-        }
-      })
-      .catch((err) => console.error("Failed to fetch live devices:", err));
+    fetchDevices(20).then((devices) => {
+      if (devices.length > 0) {
+        setEquipmentData(devices);
+        setSelectedEquipment(devices.find((e) => e.status === "critical") || devices[0]);
+      }
+    });
   }, []);
 
   const runDiagnostics = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Live Mode: Send just the device_id to trigger backend ML inference
-      const payload = {
-        device_id: selectedEquipment.id
-      };
-      
-      const response = await fetch("http://localhost:8000/api/v1/diagnose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData?.error?.message || errData?.detail || "Diagnostic API failed");
-      }
-      
-      const data = await response.json();
+      const data = await runDiagnosticsAPI(selectedEquipment.id);
       setDiagnosticResult(data);
     } catch (err: any) {
       setError(err.message || "An error occurred while connecting to the backend.");

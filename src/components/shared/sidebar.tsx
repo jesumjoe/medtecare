@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetchAlerts } from "@/lib/api";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -31,6 +32,13 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [alertCount, setAlertCount] = useState(0);
+
+  useEffect(() => {
+    fetchAlerts().then((alerts) => {
+      setAlertCount(alerts.filter((a) => a.status === "open").length);
+    });
+  }, []);
 
   const content = (
     <nav className="flex flex-col gap-1 px-3 py-4">
@@ -67,9 +75,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <span className="relative z-10">{item.label}</span>
 
             {/* Alert count for Alerts nav item */}
-            {item.label === "Alerts" && (
+            {item.label === "Alerts" && alertCount > 0 && (
               <span className="relative z-10 ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-sentinel-critical/20 px-1.5 text-[0.6rem] font-bold text-sentinel-critical">
-                5
+                {alertCount}
               </span>
             )}
           </Link>

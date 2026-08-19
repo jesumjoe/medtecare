@@ -174,5 +174,58 @@ class MLService:
         }
         return payload
 
+    def get_dataset_stats(self) -> dict:
+        """
+        Computes KPI statistics from the full dataset for the dashboard.
+        Returns total devices, at-risk count, predicted failures, and average risk score.
+        """
+        if self.df is None or self.model is None:
+            return {
+                "totalDevices": 0,
+                "devicesAtRisk": 0,
+                "predictedFailures30d": 0,
+                "avgRiskScore": 0.0,
+            }
+        
+        total = len(self.df)
+        
+        # Count devices where future_event == 1 (actual positive labels in dataset)
+        future_events = int(self.df['future_event'].sum()) if 'future_event' in self.df.columns else 0
+        
+        # Sample a subset to estimate risk distribution (running inference on all 118K is too slow)
+        sample_size = min(200, total)
+        sample = self.df.sample(n=sample_size, random_state=42)
+        
+        risk_scores = []
+        at_risk_count = 0
+        predicted_failures = 0
+        
+        for _, row in sample.iterrows():
+            try:
+                drop_cols = ['device_id', 'device_name', 'future_event']
+                X = row.drop(labels=drop_cols).to_frame().T
+                proba = float(self.model.predict_proba(X)[0][1])
+                risk_score = proba * 100
+                risk_scores.append(risk_score)
+                
+                if risk_score > 40:
+                    at_risk_count += 1
+                if risk_score > 70:
+                    predicted_failures += 1
+            except Exception:
+                continue
+        
+        avg_risk = round(sum(risk_scores) / len(risk_scores), 1) if risk_scores else 0.0
+        
+        # Scale sample counts to full dataset estimate
+        scale_factor = total / sample_size if sample_size > 0 else 1
+        
+        return {
+            "totalDevices": total,
+            "devicesAtRisk": round(at_risk_count * scale_factor),
+            "predictedFailures30d": round(predicted_failures * scale_factor),
+            "avgRiskScore": avg_risk,
+        }
+
 # Global instance to be imported by main.py
 ml_service = MLService()

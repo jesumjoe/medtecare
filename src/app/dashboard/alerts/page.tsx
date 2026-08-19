@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   GripVertical,
@@ -8,24 +8,94 @@ import {
   User,
   ListFilter,
   LayoutGrid,
+  ChevronDown,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/glass-card";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { ticketsList, formatRelativeTime } from "@/lib/mock-data";
+import { ticketsList as mockTicketsList, formatRelativeTime } from "@/lib/mock-data";
 import type { MaintenanceTicket, TicketStatus } from "@/lib/mock-data";
+import { fetchTickets, updateTicketStatus } from "@/lib/api";
 
 type ViewMode = "table" | "kanban";
 
+// ---- Status change handler ----
+
+function StatusChanger({
+  ticket,
+  onStatusChange,
+}: {
+  ticket: MaintenanceTicket;
+  onStatusChange: (id: string, status: TicketStatus) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const nextStatuses: Record<TicketStatus, TicketStatus[]> = {
+    "open": ["in-progress"],
+    "in-progress": ["resolved", "open"],
+    "resolved": ["open"],
+  };
+  const options = nextStatuses[ticket.status] || [];
+
+  if (options.length === 0) return null;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 rounded-md border border-sentinel-glass-border px-2 py-1 text-[0.65rem] font-medium text-muted-foreground transition-all hover:border-sentinel-blue/30 hover:text-foreground"
+      >
+        Move
+        <ChevronDown className="h-3 w-3" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-lg border border-sentinel-glass-border bg-sentinel-bg-to/95 p-1 shadow-xl backdrop-blur-xl">
+            {options.map((status) => (
+              <button
+                key={status}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-sentinel-glass"
+                onClick={() => {
+                  onStatusChange(ticket.id, status);
+                  setOpen(false);
+                }}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    status === "open"
+                      ? "bg-sentinel-blue"
+                      : status === "in-progress"
+                      ? "bg-sentinel-warning"
+                      : "bg-sentinel-healthy"
+                  }`}
+                />
+                {status}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ---- Table View ----
 
-function AlertsTable({ tickets }: { tickets: MaintenanceTicket[] }) {
+function AlertsTable({
+  tickets,
+  onStatusChange,
+}: {
+  tickets: MaintenanceTicket[];
+  onStatusChange: (id: string, status: TicketStatus) => void;
+}) {
   return (
     <GlassCard hover={false} padding="none" className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-sentinel-glass-border">
-              {["Equipment", "Issue", "Priority", "Status", "Assigned To", "Created"].map(
+              {["Equipment", "Issue", "Priority", "Status", "Assigned To", "Created", ""].map(
                 (h) => (
                   <th
                     key={h}
@@ -87,6 +157,9 @@ function AlertsTable({ tickets }: { tickets: MaintenanceTicket[] }) {
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   {formatRelativeTime(ticket.createdAt)}
                 </td>
+                <td className="px-4 py-3">
+                  <StatusChanger ticket={ticket} onStatusChange={onStatusChange} />
+                </td>
               </motion.tr>
             ))}
           </tbody>
@@ -104,7 +177,13 @@ const kanbanColumns: { status: TicketStatus; label: string; color: string }[] = 
   { status: "resolved", label: "Resolved", color: "var(--sentinel-healthy)" },
 ];
 
-function KanbanView({ tickets }: { tickets: MaintenanceTicket[] }) {
+function KanbanView({
+  tickets,
+  onStatusChange,
+}: {
+  tickets: MaintenanceTicket[];
+  onStatusChange: (id: string, status: TicketStatus) => void;
+}) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {kanbanColumns.map((col) => {
@@ -166,6 +245,10 @@ function KanbanView({ tickets }: { tickets: MaintenanceTicket[] }) {
                           </span>
                         )}
                       </div>
+
+                      <div className="mt-2">
+                        <StatusChanger ticket={ticket} onStatusChange={onStatusChange} />
+                      </div>
                     </div>
                   </GlassCard>
                 </motion.div>
@@ -188,6 +271,28 @@ function KanbanView({ tickets }: { tickets: MaintenanceTicket[] }) {
 
 export default function AlertsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [tickets, setTickets] = useState<MaintenanceTicket[]>(mockTicketsList);
+
+  useEffect(() => {
+    fetchTickets().then((data) => {
+      if (data.length > 0) {
+        setTickets(data);
+      }
+    });
+  }, []);
+
+  const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
+    const success = await updateTicketStatus(ticketId, newStatus as "open" | "in-progress" | "resolved");
+    if (success) {
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === ticketId
+            ? { ...t, status: newStatus, updatedAt: new Date().toISOString() }
+            : t
+        )
+      );
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -198,9 +303,9 @@ export default function AlertsPage() {
             Maintenance Queue
           </h1>
           <p className="text-sm text-muted-foreground">
-            {ticketsList.filter((t) => t.status === "open").length} open •{" "}
-            {ticketsList.filter((t) => t.status === "in-progress").length} in progress •{" "}
-            {ticketsList.filter((t) => t.status === "resolved").length} resolved
+            {tickets.filter((t) => t.status === "open").length} open •{" "}
+            {tickets.filter((t) => t.status === "in-progress").length} in progress •{" "}
+            {tickets.filter((t) => t.status === "resolved").length} resolved
           </p>
         </div>
 
@@ -235,10 +340,11 @@ export default function AlertsPage() {
 
       {/* Content */}
       {viewMode === "table" ? (
-        <AlertsTable tickets={ticketsList} />
+        <AlertsTable tickets={tickets} onStatusChange={handleStatusChange} />
       ) : (
-        <KanbanView tickets={ticketsList} />
+        <KanbanView tickets={tickets} onStatusChange={handleStatusChange} />
       )}
     </div>
   );
 }
+

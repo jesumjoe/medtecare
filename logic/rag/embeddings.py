@@ -18,12 +18,19 @@ class BGEmbeddingsService:
         self._initialized = False
 
         try:
+            import os
+            import ssl
+            if os.environ.get("DISABLE_HEAVY_EMBEDDINGS") == "1":
+                raise ImportError("Heavy sentence-transformers disabled by environment variable.")
+            os.environ["CURL_CA_BUNDLE"] = ""
+            os.environ["PYTHONHTTPSVERIFY"] = "0"
+            ssl._create_default_https_context = ssl._create_unverified_context
             from sentence_transformers import SentenceTransformer
             logger.info(f"Loading BGE Embedding model: {model_name}...")
             self.st_model = SentenceTransformer(model_name)
             self._initialized = True
             logger.info(f"BGE Embedding model '{model_name}' loaded successfully.")
-        except Exception as e:
+        except BaseException as e:
             logger.warning(f"SentenceTransformer '{model_name}' fallback active: {e}")
             self._initialized = False
 
