@@ -13,6 +13,7 @@ try:
     from logic.integration.squad_a_adapter import adapt_squad_a_prediction
     from logic.agents.graph import DiagnosticEngine
     from logic.schemas.diagnostic import DiagnosticResult
+    from backend.ml_service import ml_service
     import logging
     
     logger = logging.getLogger(__name__)
@@ -51,27 +52,41 @@ async def health_check():
         "engine_ready": engine is not None
     }
 
+@app.get("/api/v1/devices")
+async def get_devices():
+    """Returns a list of real medical devices from the dataset for the dashboard."""
+    devices = ml_service.get_frontend_devices(limit=10)
+    return {"devices": devices}
+
 @app.post("/api/v1/diagnose", response_model=DiagnosticResult)
 async def diagnose(request: Request):
     """
-    Accepts a Squad A prediction payload, adapts it, and runs the Squad B diagnostic workflow.
+    Accepts a device_id, runs real CatBoost ML prediction, and triggers Squad B workflow.
     """
     if engine is None:
         raise HTTPException(status_code=503, detail="Diagnostic Engine is not available.")
         
     try:
-        payload = await request.json()
+        req_json = await request.json()
+        device_id = req_json.get("device_id")
+        if not device_id:
+            raise ValueError("device_id is required")
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload.")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload or missing device_id.")
         
     try:
-        # 1. Adapt Squad A input
-        prediction = adapt_squad_a_prediction(payload)
+        # 1. Run live ML Inference to get Squad A payload
+        squad_a_payload = ml_service.run_inference(device_id)
+        if not squad_a_payload:
+            raise ValueError(f"Could not generate inference for device {device_id}")
+
+        # 2. Adapt Squad A input
+        prediction = adapt_squad_a_prediction(squad_a_payload)
         
-        # 2. Run Diagnostic Engine
+        # 3. Run Diagnostic Engine
         result = engine.analyze(prediction)
         
-        # 3. Return DiagnosticResult
+        # 4. Return DiagnosticResult
         return result
         
     except Exception as e:

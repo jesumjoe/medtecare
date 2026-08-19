@@ -1,5 +1,5 @@
 // ============================================
-// SENTINELOPS — STRONGLY TYPED MOCK DATA
+// MEDTECARE — STRONGLY TYPED MOCK DATA
 // Backend team: swap this file's exports with
 // API calls without touching component props.
 // ============================================
@@ -113,185 +113,95 @@ function randomDate(daysBack: number): string {
 
 export const equipmentList: Equipment[] = [
   {
-    id: "EQ-001",
-    name: "CNC Mill Alpha-7",
-    type: "CNC Milling Machine",
-    location: "Plant A — Bay 3",
+    id: "DEV-88401",
+    name: "Smart Infusion Pump System",
+    type: "Infusion Pump",
+    location: "Cardiology Ward",
     riskScore: 87,
     status: "critical",
     lastUpdated: randomDate(0.1),
     confidencePercent: 94,
     sensorReadings: [
-      { name: "Bearing Temp", value: 112, unit: "°C", normalRange: [40, 85] },
-      { name: "Vibration RMS", value: 8.7, unit: "mm/s", normalRange: [0, 4.5] },
-      { name: "Spindle Load", value: 91, unit: "%", normalRange: [0, 80] },
+      { name: "Occlusion Pressure", value: 3.2, unit: "psi", normalRange: [0.5, 2.0] },
+      { name: "Flow Rate Deviation", value: 4.5, unit: "%", normalRange: [0, 2] },
+      { name: "Battery Health", value: 72, unit: "%", normalRange: [80, 100] },
     ],
   },
   {
-    id: "EQ-002",
-    name: "Hydraulic Press B-12",
-    type: "Hydraulic Press",
-    location: "Plant A — Bay 1",
+    id: "DEV-99213",
+    name: "Advanced Defibrillator",
+    type: "Defibrillator",
+    location: "Emergency Room",
     riskScore: 72,
     status: "warning",
     lastUpdated: randomDate(0.2),
     confidencePercent: 88,
     sensorReadings: [
-      { name: "Oil Viscosity", value: 28, unit: "cSt", normalRange: [32, 68] },
-      { name: "Cylinder Pressure", value: 3200, unit: "PSI", normalRange: [1000, 3000] },
-      { name: "Oil Temp", value: 78, unit: "°C", normalRange: [30, 70] },
+      { name: "Capacitor Charge Time", value: 7.8, unit: "sec", normalRange: [3, 6] },
+      { name: "Electrode Impedance", value: 110, unit: "ohms", normalRange: [50, 100] },
+      { name: "Battery Temp", value: 42, unit: "°C", normalRange: [20, 35] },
     ],
   },
   {
-    id: "EQ-003",
-    name: "Conveyor Line C-04",
-    type: "Belt Conveyor",
-    location: "Plant B — Zone 2",
+    id: "DEV-44122",
+    name: "Robotic Surgical Manipulator",
+    type: "Surgical Robot",
+    location: "Operating Room 3",
     riskScore: 15,
     status: "healthy",
     lastUpdated: randomDate(0.5),
     confidencePercent: 96,
     sensorReadings: [
-      { name: "Belt Tension", value: 450, unit: "N", normalRange: [400, 600] },
-      { name: "Motor Temp", value: 52, unit: "°C", normalRange: [30, 75] },
-      { name: "Speed", value: 1.8, unit: "m/s", normalRange: [1.5, 2.5] },
+      { name: "Cable Tension", value: 145, unit: "N", normalRange: [140, 150] },
+      { name: "Joint Torque Error", value: 0.2, unit: "Nm", normalRange: [0, 0.5] },
+      { name: "Motor Temp", value: 38, unit: "°C", normalRange: [30, 45] },
     ],
   },
   {
-    id: "EQ-004",
-    name: "Welding Robot WR-09",
-    type: "Robotic Welder",
-    location: "Plant A — Bay 5",
+    id: "DEV-55341",
+    name: "Mechanical Ventilator",
+    type: "Ventilator",
+    location: "ICU-2",
     riskScore: 45,
     status: "warning",
     lastUpdated: randomDate(0.3),
     confidencePercent: 82,
     sensorReadings: [
-      { name: "Joint Torque", value: 78, unit: "Nm", normalRange: [20, 70] },
-      { name: "Wire Feed Rate", value: 6.2, unit: "m/min", normalRange: [5, 8] },
-      { name: "Arc Voltage", value: 24.5, unit: "V", normalRange: [22, 28] },
+      { name: "Airway Pressure", value: 32, unit: "cmH2O", normalRange: [20, 30] },
+      { name: "O2 Concentration Drift", value: 2.1, unit: "%", normalRange: [0, 1] },
+      { name: "Exhalation Valve Temp", value: 36, unit: "°C", normalRange: [22, 35] },
     ],
   },
   {
-    id: "EQ-005",
-    name: "Compressor Unit D-01",
-    type: "Air Compressor",
-    location: "Plant B — Utility Room",
+    id: "DEV-77291",
+    name: "MRI Scanner 3T",
+    type: "MRI Machine",
+    location: "Radiology",
     riskScore: 8,
     status: "healthy",
     lastUpdated: randomDate(1),
     confidencePercent: 98,
     sensorReadings: [
-      { name: "Discharge Pressure", value: 125, unit: "PSI", normalRange: [100, 150] },
-      { name: "Motor Current", value: 42, unit: "A", normalRange: [30, 55] },
-      { name: "Intake Temp", value: 28, unit: "°C", normalRange: [15, 35] },
+      { name: "Helium Level", value: 85, unit: "%", normalRange: [70, 100] },
+      { name: "Magnet Temp", value: 4.2, unit: "K", normalRange: [4.1, 4.3] },
+      { name: "Gradient Coil Voltage", value: 120, unit: "V", normalRange: [110, 130] },
     ],
   },
   {
-    id: "EQ-006",
-    name: "Lathe Machine L-03",
-    type: "CNC Lathe",
-    location: "Plant A — Bay 2",
+    id: "DEV-11932",
+    name: "Patient Monitor Vitals",
+    type: "Vital Signs Monitor",
+    location: "Ward 4",
     riskScore: 91,
     status: "critical",
     lastUpdated: randomDate(0.05),
     confidencePercent: 97,
     sensorReadings: [
-      { name: "Spindle Vibration", value: 12.3, unit: "mm/s", normalRange: [0, 5] },
-      { name: "Coolant Flow", value: 1.2, unit: "L/min", normalRange: [3, 8] },
-      { name: "Chuck Pressure", value: 18, unit: "bar", normalRange: [20, 35] },
+      { name: "ECG Noise Level", value: 12.3, unit: "mV", normalRange: [0, 5] },
+      { name: "SpO2 Sensor Drift", value: 4.5, unit: "%", normalRange: [0, 2] },
+      { name: "Battery Level", value: 15, unit: "%", normalRange: [20, 100] },
     ],
-  },
-  {
-    id: "EQ-007",
-    name: "Injection Molder IM-15",
-    type: "Injection Molding",
-    location: "Plant C — Hall 1",
-    riskScore: 22,
-    status: "healthy",
-    lastUpdated: randomDate(0.8),
-    confidencePercent: 91,
-    sensorReadings: [
-      { name: "Barrel Temp", value: 215, unit: "°C", normalRange: [200, 240] },
-      { name: "Clamping Force", value: 850, unit: "kN", normalRange: [700, 1000] },
-      { name: "Cycle Time", value: 32, unit: "s", normalRange: [28, 38] },
-    ],
-  },
-  {
-    id: "EQ-008",
-    name: "Packaging Robot PR-06",
-    type: "Pick-and-Place Robot",
-    location: "Plant B — Zone 4",
-    riskScore: 58,
-    status: "warning",
-    lastUpdated: randomDate(0.4),
-    confidencePercent: 79,
-    sensorReadings: [
-      { name: "Gripper Force", value: 42, unit: "N", normalRange: [30, 50] },
-      { name: "Arm Position Error", value: 2.1, unit: "mm", normalRange: [0, 1] },
-      { name: "Cycle Count", value: 487000, unit: "cycles", normalRange: [0, 500000] },
-    ],
-  },
-  {
-    id: "EQ-009",
-    name: "Furnace Unit F-02",
-    type: "Industrial Furnace",
-    location: "Plant C — Heat Treatment",
-    riskScore: 34,
-    status: "healthy",
-    lastUpdated: randomDate(0.6),
-    confidencePercent: 93,
-    sensorReadings: [
-      { name: "Chamber Temp", value: 850, unit: "°C", normalRange: [800, 900] },
-      { name: "Gas Flow", value: 12.5, unit: "m³/h", normalRange: [10, 15] },
-      { name: "Exhaust Temp", value: 310, unit: "°C", normalRange: [250, 350] },
-    ],
-  },
-  {
-    id: "EQ-010",
-    name: "Cooling Tower CT-01",
-    type: "Cooling System",
-    location: "Plant A — Rooftop",
-    riskScore: 12,
-    status: "healthy",
-    lastUpdated: randomDate(2),
-    confidencePercent: 95,
-    sensorReadings: [
-      { name: "Water Temp Out", value: 28, unit: "°C", normalRange: [22, 32] },
-      { name: "Fan Speed", value: 1200, unit: "RPM", normalRange: [800, 1500] },
-      { name: "Water Level", value: 82, unit: "%", normalRange: [60, 100] },
-    ],
-  },
-  {
-    id: "EQ-011",
-    name: "Generator GEN-04",
-    type: "Diesel Generator",
-    location: "Plant B — Power House",
-    riskScore: 65,
-    status: "warning",
-    lastUpdated: randomDate(0.3),
-    confidencePercent: 86,
-    sensorReadings: [
-      { name: "Engine Temp", value: 95, unit: "°C", normalRange: [60, 90] },
-      { name: "Fuel Consumption", value: 45, unit: "L/h", normalRange: [30, 42] },
-      { name: "Output Voltage", value: 398, unit: "V", normalRange: [395, 415] },
-    ],
-  },
-  {
-    id: "EQ-012",
-    name: "AGV Transport T-08",
-    type: "Automated Guided Vehicle",
-    location: "Plant A — Warehouse",
-    riskScore: 19,
-    status: "healthy",
-    lastUpdated: randomDate(0.7),
-    confidencePercent: 92,
-    sensorReadings: [
-      { name: "Battery Level", value: 78, unit: "%", normalRange: [20, 100] },
-      { name: "Motor Temp", value: 45, unit: "°C", normalRange: [25, 65] },
-      { name: "Navigation Accuracy", value: 0.3, unit: "cm", normalRange: [0, 1] },
-    ],
-  },
+  }
 ];
 
 // ---- ALERTS ----
@@ -299,99 +209,41 @@ export const equipmentList: Equipment[] = [
 export const alertsList: Alert[] = [
   {
     id: "ALT-001",
-    equipmentId: "EQ-001",
-    equipmentName: "CNC Mill Alpha-7",
-    riskDriver: "Bearing temperature anomaly — exceeded 110°C threshold",
+    equipmentId: "DEV-88401",
+    equipmentName: "Smart Infusion Pump System",
+    riskDriver: "Occlusion pressure sensor drift — potential under-delivery",
     severity: "critical",
     timestamp: randomDate(0.01),
     status: "open",
   },
   {
     id: "ALT-002",
-    equipmentId: "EQ-006",
-    equipmentName: "Lathe Machine L-03",
-    riskDriver: "Coolant flow critically low — potential spindle damage",
+    equipmentId: "DEV-11932",
+    equipmentName: "Patient Monitor Vitals",
+    riskDriver: "High ECG noise detected — cable failure imminent",
     severity: "critical",
     timestamp: randomDate(0.02),
     status: "open",
   },
   {
     id: "ALT-003",
-    equipmentId: "EQ-002",
-    equipmentName: "Hydraulic Press B-12",
-    riskDriver: "Oil viscosity degradation detected — recommend replacement",
+    equipmentId: "DEV-99213",
+    equipmentName: "Advanced Defibrillator",
+    riskDriver: "Capacitor charge time degradation detected",
     severity: "high",
     timestamp: randomDate(0.08),
     status: "open",
   },
   {
     id: "ALT-004",
-    equipmentId: "EQ-008",
-    equipmentName: "Packaging Robot PR-06",
-    riskDriver: "Arm position error exceeding tolerance (2.1mm vs 1mm limit)",
-    severity: "high",
+    equipmentId: "DEV-55341",
+    equipmentName: "Mechanical Ventilator",
+    riskDriver: "O2 concentration sensor drift above 2%",
+    severity: "medium",
     timestamp: randomDate(0.1),
     status: "acknowledged",
-    assignedTo: "Marcus Chen",
-  },
-  {
-    id: "ALT-005",
-    equipmentId: "EQ-011",
-    equipmentName: "Generator GEN-04",
-    riskDriver: "Fuel consumption 7% above baseline — possible injector issue",
-    severity: "medium",
-    timestamp: randomDate(0.2),
-    status: "acknowledged",
-    assignedTo: "Sarah Lopez",
-  },
-  {
-    id: "ALT-006",
-    equipmentId: "EQ-004",
-    equipmentName: "Welding Robot WR-09",
-    riskDriver: "Joint torque drift detected — recalibration recommended",
-    severity: "medium",
-    timestamp: randomDate(0.3),
-    status: "open",
-  },
-  {
-    id: "ALT-007",
-    equipmentId: "EQ-001",
-    equipmentName: "CNC Mill Alpha-7",
-    riskDriver: "Vibration RMS trending upward — bearing wear pattern",
-    severity: "high",
-    timestamp: randomDate(0.5),
-    status: "acknowledged",
-    assignedTo: "James Park",
-  },
-  {
-    id: "ALT-008",
-    equipmentId: "EQ-006",
-    equipmentName: "Lathe Machine L-03",
-    riskDriver: "Chuck pressure below minimum — workpiece ejection risk",
-    severity: "critical",
-    timestamp: randomDate(0.04),
-    status: "open",
-  },
-  {
-    id: "ALT-009",
-    equipmentId: "EQ-009",
-    equipmentName: "Furnace Unit F-02",
-    riskDriver: "Minor thermocouple drift — scheduled recalibration",
-    severity: "low",
-    timestamp: randomDate(1),
-    status: "resolved",
-    assignedTo: "Emily Zhao",
-  },
-  {
-    id: "ALT-010",
-    equipmentId: "EQ-003",
-    equipmentName: "Conveyor Line C-04",
-    riskDriver: "Routine belt tension adjustment completed",
-    severity: "low",
-    timestamp: randomDate(2),
-    status: "resolved",
-    assignedTo: "Marcus Chen",
-  },
+    assignedTo: "Dr. Marcus Chen",
+  }
 ];
 
 // ---- RISK TREND (30-day) ----
@@ -410,11 +262,9 @@ export const riskTrendData: RiskDataPoint[] = Array.from({ length: 30 }, (_, i) 
 // ---- TECHNICIANS ----
 
 export const techniciansList: Technician[] = [
-  { id: "TECH-001", name: "Marcus Chen", avatar: "MC", assignedTickets: 3, location: "Plant A", specialty: "CNC & Robotics" },
-  { id: "TECH-002", name: "Sarah Lopez", avatar: "SL", assignedTickets: 2, location: "Plant B", specialty: "Hydraulics" },
-  { id: "TECH-003", name: "James Park", avatar: "JP", assignedTickets: 4, location: "Plant A", specialty: "Electrical Systems" },
-  { id: "TECH-004", name: "Emily Zhao", avatar: "EZ", assignedTickets: 1, location: "Plant C", specialty: "Heat Treatment" },
-  { id: "TECH-005", name: "David Okoye", avatar: "DO", assignedTickets: 2, location: "Plant B", specialty: "Automation" },
+  { id: "TECH-001", name: "Biomed Marcus Chen", avatar: "MC", assignedTickets: 3, location: "Main Hospital", specialty: "Infusion & Vitals" },
+  { id: "TECH-002", name: "Biomed Sarah Lopez", avatar: "SL", assignedTickets: 2, location: "Radiology", specialty: "Imaging" },
+  { id: "TECH-003", name: "Biomed James Park", avatar: "JP", assignedTickets: 4, location: "OR & ICU", specialty: "Robotics & Vent" },
 ];
 
 // ---- MAINTENANCE TICKETS ----
@@ -422,10 +272,10 @@ export const techniciansList: Technician[] = [
 export const ticketsList: MaintenanceTicket[] = [
   {
     id: "TKT-001",
-    equipmentId: "EQ-001",
-    equipmentName: "CNC Mill Alpha-7",
-    title: "Emergency bearing replacement",
-    description: "Bearing temperature exceeded critical threshold. Immediate replacement required to prevent spindle seizure.",
+    equipmentId: "DEV-88401",
+    equipmentName: "Smart Infusion Pump System",
+    title: "Emergency sensor calibration",
+    description: "Occlusion pressure sensor out of bounds. Recalibrate to prevent fatal dosing errors.",
     priority: "critical",
     status: "open",
     createdAt: randomDate(0.01),
@@ -433,10 +283,10 @@ export const ticketsList: MaintenanceTicket[] = [
   },
   {
     id: "TKT-002",
-    equipmentId: "EQ-006",
-    equipmentName: "Lathe Machine L-03",
-    title: "Coolant system overhaul",
-    description: "Coolant flow rate critically low. Inspect pump, filters, and distribution lines.",
+    equipmentId: "DEV-11932",
+    equipmentName: "Patient Monitor Vitals",
+    title: "ECG module replacement",
+    description: "Consistent high noise level in ECG readings. Replace trunk cable and module.",
     priority: "critical",
     status: "open",
     createdAt: randomDate(0.02),
@@ -444,98 +294,15 @@ export const ticketsList: MaintenanceTicket[] = [
   },
   {
     id: "TKT-003",
-    equipmentId: "EQ-002",
-    equipmentName: "Hydraulic Press B-12",
-    title: "Hydraulic oil replacement",
-    description: "Oil viscosity below operational range. Schedule full fluid change and filter replacement.",
+    equipmentId: "DEV-99213",
+    equipmentName: "Advanced Defibrillator",
+    title: "Capacitor replacement",
+    description: "Charge time exceeded 7s limit. Preventative maintenance required for capacitor bank.",
     priority: "high",
     status: "in-progress",
-    assignedTechnician: "Sarah Lopez",
+    assignedTechnician: "Biomed Sarah Lopez",
     createdAt: randomDate(0.1),
     updatedAt: randomDate(0.05),
-  },
-  {
-    id: "TKT-004",
-    equipmentId: "EQ-008",
-    equipmentName: "Packaging Robot PR-06",
-    title: "Arm calibration & servo check",
-    description: "Position error exceeding tolerance. Recalibrate arm and inspect servo motors.",
-    priority: "high",
-    status: "in-progress",
-    assignedTechnician: "Marcus Chen",
-    createdAt: randomDate(0.15),
-    updatedAt: randomDate(0.08),
-  },
-  {
-    id: "TKT-005",
-    equipmentId: "EQ-011",
-    equipmentName: "Generator GEN-04",
-    title: "Fuel injector inspection",
-    description: "Above-baseline fuel consumption suggests injector degradation. Inspect and clean or replace.",
-    priority: "medium",
-    status: "in-progress",
-    assignedTechnician: "Sarah Lopez",
-    createdAt: randomDate(0.2),
-    updatedAt: randomDate(0.1),
-  },
-  {
-    id: "TKT-006",
-    equipmentId: "EQ-004",
-    equipmentName: "Welding Robot WR-09",
-    title: "Joint recalibration",
-    description: "Torque drift on axis 3. Perform full joint recalibration per manufacturer spec.",
-    priority: "medium",
-    status: "open",
-    createdAt: randomDate(0.3),
-    updatedAt: randomDate(0.3),
-  },
-  {
-    id: "TKT-007",
-    equipmentId: "EQ-009",
-    equipmentName: "Furnace Unit F-02",
-    title: "Thermocouple recalibration",
-    description: "Minor drift detected in zone 2 thermocouple. Scheduled recalibration completed.",
-    priority: "low",
-    status: "resolved",
-    assignedTechnician: "Emily Zhao",
-    createdAt: randomDate(3),
-    updatedAt: randomDate(1),
-  },
-  {
-    id: "TKT-008",
-    equipmentId: "EQ-003",
-    equipmentName: "Conveyor Line C-04",
-    title: "Belt tension adjustment",
-    description: "Routine preventive maintenance — belt tension adjusted to specification.",
-    priority: "low",
-    status: "resolved",
-    assignedTechnician: "Marcus Chen",
-    createdAt: randomDate(5),
-    updatedAt: randomDate(2),
-  },
-  {
-    id: "TKT-009",
-    equipmentId: "EQ-010",
-    equipmentName: "Cooling Tower CT-01",
-    title: "Water treatment chemical refill",
-    description: "Biocide and scale inhibitor levels low. Refill chemical dosing system.",
-    priority: "low",
-    status: "resolved",
-    assignedTechnician: "David Okoye",
-    createdAt: randomDate(7),
-    updatedAt: randomDate(3),
-  },
-  {
-    id: "TKT-010",
-    equipmentId: "EQ-001",
-    equipmentName: "CNC Mill Alpha-7",
-    title: "Vibration analysis follow-up",
-    description: "Follow-up inspection after vibration RMS alert. Monitor bearing degradation pattern.",
-    priority: "high",
-    status: "in-progress",
-    assignedTechnician: "James Park",
-    createdAt: randomDate(0.5),
-    updatedAt: randomDate(0.2),
   },
 ];
 
@@ -543,47 +310,44 @@ export const ticketsList: MaintenanceTicket[] = [
 
 export const kpiData: KPIData[] = [
   {
-    label: "Total Assets",
-    value: 127,
+    label: "Total Medical Devices",
+    value: 1270,
     change: 4,
     changeLabel: "new this month",
-    sparkline: [110, 112, 115, 118, 120, 122, 124, 127],
+    sparkline: [1210, 1220, 1235, 1250, 1260, 1265, 1268, 1270],
   },
   {
-    label: "Assets at Risk",
-    value: 23,
-    change: 12,
+    label: "Devices at Risk",
+    value: 12,
+    change: -3,
     changeLabel: "vs last month",
-    sparkline: [18, 16, 19, 21, 20, 22, 24, 23],
+    sparkline: [18, 16, 19, 21, 20, 15, 14, 12],
     suffix: "",
   },
   {
     label: "Predicted Failures (30d)",
-    value: 8,
-    change: -25,
+    value: 2,
+    change: -5,
     changeLabel: "vs last month",
-    sparkline: [12, 11, 10, 9, 11, 10, 9, 8],
+    sparkline: [12, 11, 10, 9, 7, 5, 4, 2],
   },
   {
     label: "Avg Risk Score",
-    value: 34.2,
-    change: 5.3,
+    value: 14.2,
+    change: -2.3,
     changeLabel: "vs last month",
-    sparkline: [30, 29, 31, 32, 33, 31, 33, 34.2],
+    sparkline: [20, 19, 18, 17, 16, 15, 14, 14.2],
   },
 ];
 
 // ---- FEATURE IMPORTANCE (SHAP-style) ----
 
 export const featureImportanceData: FeatureImportance[] = [
-  { feature: "Bearing Temperature", importance: 0.42, direction: "positive" },
-  { feature: "Vibration RMS", importance: 0.28, direction: "positive" },
+  { feature: "Occlusion Pressure", importance: 0.42, direction: "positive" },
+  { feature: "Battery Health", importance: 0.28, direction: "positive" },
   { feature: "Operating Hours", importance: 0.15, direction: "positive" },
-  { feature: "Oil Viscosity", importance: -0.12, direction: "negative" },
-  { feature: "Ambient Temperature", importance: 0.08, direction: "positive" },
-  { feature: "Load Percentage", importance: 0.06, direction: "positive" },
+  { feature: "Flow Rate Accuracy", importance: -0.12, direction: "negative" },
   { feature: "Last Maintenance", importance: -0.05, direction: "negative" },
-  { feature: "Coolant Flow Rate", importance: -0.04, direction: "negative" },
 ];
 
 // ---- DIAGNOSTIC MESSAGES ----
@@ -591,27 +355,26 @@ export const featureImportanceData: FeatureImportance[] = [
 export const diagnosticMessages: DiagnosticMessage[] = [
   {
     role: "system",
-    content: "Diagnostic analysis initiated for CNC Mill Alpha-7 (EQ-001)",
+    content: "Diagnostic analysis initiated for Smart Infusion Pump System (DEV-88401)",
     timestamp: new Date(Date.now() - 120000).toISOString(),
   },
   {
     role: "agent",
-    content: `## Diagnostic Summary — CNC Mill Alpha-7
-
+    content: `## Diagnostic Summary — Smart Infusion Pump System
+    
 **Risk Assessment: CRITICAL (87/100)**
 
-I've analyzed the sensor telemetry data from the last 72 hours and identified a compound failure pattern:
+I've analyzed the sensor telemetry data and identified a compound failure pattern:
 
-1. **Primary concern — Bearing degradation**: Temperature readings have increased 34% over 48 hours (78°C → 112°C), following a classic exponential wear curve. Vibration RMS confirms this at 8.7 mm/s (threshold: 4.5 mm/s).
+1. **Primary concern — Pressure Sensor Drift**: Readings have deviated beyond acceptable safety margins (3.2 psi vs normal max of 2.0 psi).
 
-2. **Secondary concern — Spindle overload**: Load has been sustained above 90% for the past 6 production cycles. Combined with bearing degradation, this creates a cascading failure risk.
+2. **Secondary concern — Battery Health**: Battery capacity has dropped to 72%, risking sudden shutdown during patient transport.
 
 3. **Recommended actions**:
-   - **Immediate**: Reduce spindle speed by 40% and cease heavy-cut operations
-   - **Within 24h**: Replace main spindle bearings (SKF 7208 BECBP or equivalent)
-   - **Within 48h**: Full spindle alignment check post-replacement
+   - **Immediate**: Remove device from clinical use.
+   - **Within 24h**: Recalibrate occlusion sensors and replace main battery pack.
 
-**Confidence**: 94% based on historical failure patterns from 12 similar units across your fleet.`,
+**Confidence**: 94% based on historical FDA MAUDE adverse event reports.`,
     timestamp: new Date(Date.now() - 60000).toISOString(),
   },
 ];
@@ -621,31 +384,17 @@ I've analyzed the sensor telemetry data from the last 72 hours and identified a 
 export const manualReferences: ManualReference[] = [
   {
     id: "REF-001",
-    title: "CNC Mill Maintenance Manual — Rev 4.2",
-    section: "Section 7.3: Spindle Bearing Replacement Procedure",
-    excerpt: "When bearing temperature exceeds 100°C during normal operation, immediate inspection is required. Follow lockout/tagout procedure (Sec 2.1) before disassembly...",
+    title: "Infusion Pump Service Manual",
+    section: "Section 7.3: Sensor Recalibration",
+    excerpt: "When occlusion pressure exceeds 2.5 psi without tubing blockages, sensor recalibration is required to prevent over-infusion...",
     relevance: 0.96,
   },
   {
     id: "REF-002",
-    title: "SKF Bearing Technical Handbook",
-    section: "Chapter 14: Vibration Analysis for Rolling Bearings",
-    excerpt: "RMS velocity values above 7.1 mm/s indicate severe bearing damage (ISO 10816-3 Zone D). Immediate corrective action is recommended to prevent catastrophic failure...",
+    title: "FDA MAUDE Database",
+    section: "Report 2024-001X",
+    excerpt: "Battery degradation below 80% led to unexpected shutdown during patient transport. Preventative replacement advised...",
     relevance: 0.91,
-  },
-  {
-    id: "REF-003",
-    title: "Predictive Maintenance Best Practices — SMRP Guide",
-    section: "Section 5.2: Thermal Analysis Decision Trees",
-    excerpt: "A temperature rise rate exceeding 15°C/day in rotating equipment bearings indicates accelerated wear. Cross-reference with vibration spectrum data for confirmation...",
-    relevance: 0.84,
-  },
-  {
-    id: "REF-004",
-    title: "OEM Service Bulletin SB-2024-017",
-    section: "Spindle Load Derating Guidelines",
-    excerpt: "Under sustained loads above 85% capacity, reduce continuous operation time by 30% and increase inspection frequency to every 200 operating hours...",
-    relevance: 0.78,
   },
 ];
 

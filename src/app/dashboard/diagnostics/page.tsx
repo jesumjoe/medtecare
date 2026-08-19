@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart,
@@ -255,6 +255,7 @@ function ManualReferences({ result }: { result: any }) {
 }
 
 export default function DiagnosticsPage() {
+  const [equipmentData, setEquipmentData] = useState<Equipment[]>(equipmentList);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment>(
     equipmentList.find((e) => e.status === "critical") || equipmentList[0]
   );
@@ -264,24 +265,26 @@ export default function DiagnosticsPage() {
   const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Fetch live ML-generated devices from the backend API
+    fetch("http://localhost:8000/api/v1/devices")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.devices && data.devices.length > 0) {
+          setEquipmentData(data.devices);
+          setSelectedEquipment(data.devices[0]);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch live devices:", err));
+  }, []);
+
   const runDiagnostics = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Live Mode: Send just the device_id to trigger backend ML inference
       const payload = {
-        device_id: selectedEquipment.id,
-        device_name: selectedEquipment.name,
-        future_event_probability: selectedEquipment.riskScore / 100,
-        prediction: selectedEquipment.riskScore >= 50 ? 1 : 0,
-        risk_level: selectedEquipment.status.toUpperCase(),
-        model_confidence: 0.88,
-        classification: "Active Equipment",
-        risk_class: "Class IIb",
-        feature_drivers: [
-          { feature: "previous_recalls", impact: 0.42 },
-          { feature: "previous_safety_notices", impact: 0.28 },
-          { feature: "years_in_service", impact: 0.15 }
-        ]
+        device_id: selectedEquipment.id
       };
       
       const response = await fetch("http://localhost:8000/api/v1/diagnose", {
@@ -353,7 +356,7 @@ export default function DiagnosticsPage() {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
                 <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-sentinel-glass-border bg-sentinel-bg-to/95 p-2 shadow-xl backdrop-blur-xl">
-                  {equipmentList.map((eq) => (
+                  {equipmentData.map((eq) => (
                     <button
                       key={eq.id}
                       type="button"
