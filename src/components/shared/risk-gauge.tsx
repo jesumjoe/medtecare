@@ -77,7 +77,7 @@ export function RiskGauge({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          {score}
+          {Math.round(score)}
         </motion.span>
         {showLabel && (
           <span className="text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground mt-1">
@@ -121,7 +121,7 @@ export function ConfidenceRing({ percent, size = 36, className }: ConfidenceRing
         />
       </svg>
       <span className="absolute text-[0.6rem] font-bold text-sentinel-blue-light">
-        {percent}%
+        {Math.round(percent)}%
       </span>
     </div>
   );
