@@ -12,7 +12,6 @@ import type {
   Equipment,
   Alert,
   MaintenanceTicket,
-  KPIData,
   RiskDataPoint,
 } from "@/lib/mock-data";
 

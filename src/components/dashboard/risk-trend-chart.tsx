@@ -9,7 +9,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { GlassCard } from "@/components/shared/glass-card";
 import type { RiskDataPoint } from "@/lib/mock-data";

@@ -73,7 +73,7 @@ export function AlertsFeed({ alerts, maxItems = 8 }: AlertsFeedProps) {
                 {alert.riskDriver}
               </p>
               <div className="mt-1.5 flex items-center gap-3">
-                <span className="flex items-center gap-1 text-[0.65rem] text-muted-foreground">
+                <span suppressHydrationWarning className="flex items-center gap-1 text-[0.65rem] text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   {formatRelativeTime(alert.timestamp)}
                 </span>

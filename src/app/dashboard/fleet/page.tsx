@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { GlassCard } from "@/components/shared/glass-card";
-import { Server } from "lucide-react";
 import { FleetGrid } from "@/components/dashboard/fleet-grid";
 import { equipmentList as mockEquipmentList } from "@/lib/mock-data";
 import type { Equipment } from "@/lib/mock-data";

@@ -111,7 +111,7 @@ class MLService:
         if self.df is None or self.model is None:
             return {}
             
-        row = self.df[self.df['device_id'] == int(device_id)]
+        row = self.df[self.df['device_id'].astype(str) == str(device_id)]
         if row.empty:
             raise ValueError(f"Device ID {device_id} not found in dataset")
             
@@ -126,6 +126,10 @@ class MLService:
         # Construct DataFrame of just this row to pass to predict
         X = row.drop(labels=drop_cols).to_frame().T
         
+        # Fix NaN in categorical features (CatBoost requires string for categorical NaNs)
+        for col in X.select_dtypes(include=['object', 'category']).columns:
+            X[col] = X[col].fillna("Missing").astype(str)
+            
         # Predict probability
         proba = float(self.model.predict_proba(X)[0][1]) # Probability of class 1
         prediction_val = int(proba > 0.5)

@@ -22,9 +22,9 @@ import {
   manualReferences,
 } from "@/lib/mock-data";
 import type { Equipment } from "@/lib/mock-data";
-import { fetchDevices, runDiagnosticsAPI } from "@/lib/api";
+import { fetchDevices, runDiagnosticsAPI, type DiagnosticResultResponse } from "@/lib/api";
 
-function SHAPChart({ result }: { result: any }) {
+function SHAPChart({ result }: { result: DiagnosticResultResponse | null }) {
   // Use mock data if no result, otherwise construct from result
   let data = featureImportanceData.map((f) => ({
     ...f,
@@ -32,7 +32,7 @@ function SHAPChart({ result }: { result: any }) {
   }));
 
   if (result && result.probable_root_causes) {
-    data = result.probable_root_causes.map((rc: any) => ({
+    data = result.probable_root_causes.map((rc) => ({
       feature: rc.cause,
       importance: rc.likelihood,
       absImportance: Math.abs(rc.likelihood),
@@ -77,7 +77,7 @@ function SHAPChart({ result }: { result: any }) {
                 fontSize: "12px",
                 color: "#E2E8F0",
               }}
-              formatter={(value: any) => [
+              formatter={(value: number) => [
                 `${(Number(value) * 100).toFixed(0)}%`,
                 "Impact",
               ]}
@@ -113,13 +113,13 @@ function SHAPChart({ result }: { result: any }) {
   );
 }
 
-function DiagnosticChat({ result }: { result: any }) {
+function DiagnosticChat({ result }: { result: DiagnosticResultResponse | null }) {
   let messages = diagnosticMessages;
   
   if (result) {
     const aiMessage = `## Diagnosis\n${result.diagnosis}\n\n` +
       `## Explanation\n${result.explanation}\n\n` +
-      `## Recommended Actions\n` + result.recommended_actions.map((ra: any) => `- **${ra.title}**: ${ra.description} (${ra.timeframe}, ${ra.urgency})`).join('\n') +
+      `## Recommended Actions\n` + result.recommended_actions.map((ra) => `- **${ra.title}**: ${ra.description} (${ra.timeframe}, ${ra.urgency})`).join('\n') +
       `\n\n**Confidence**: ${(result.confidence * 100).toFixed(1)}%\n` +
       `**Maintenance Priority**: ${result.maintenance_priority}\n` +
       `**Requires Human Review**: ${result.requires_human_review ? "Yes" : "No"}`;
@@ -198,7 +198,7 @@ function DiagnosticChat({ result }: { result: any }) {
   );
 }
 
-function ManualReferences({ result }: { result: any }) {
+function ManualReferences({ result }: { result: DiagnosticResultResponse | null }) {
   let refs = manualReferences;
   
   if (result && result.citations && result.citations.length > 0) {
@@ -263,7 +263,7 @@ export default function DiagnosticsPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
+  const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResultResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -282,8 +282,8 @@ export default function DiagnosticsPage() {
     try {
       const data = await runDiagnosticsAPI(selectedEquipment.id);
       setDiagnosticResult(data);
-    } catch (err: any) {
-      setError(err.message || "An error occurred while connecting to the backend.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred while connecting to the backend.");
     } finally {
       setIsLoading(false);
     }

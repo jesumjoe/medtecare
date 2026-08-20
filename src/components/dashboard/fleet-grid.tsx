@@ -53,7 +53,7 @@ export function EquipmentCard({ equipment, index = 0 }: EquipmentCardProps) {
                 <MapPin className="h-3 w-3" />
                 {equipment.location}
               </span>
-              <span className="flex items-center gap-1">
+              <span suppressHydrationWarning className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {formatRelativeTime(equipment.lastUpdated)}
               </span>

@@ -105,7 +105,7 @@ export interface KPIData {
 
 function randomDate(daysBack: number): string {
   const d = new Date();
-  d.setMinutes(d.getMinutes() - Math.floor(Math.random() * daysBack * 24 * 60));
+  d.setMinutes(d.getMinutes() - Math.floor(daysBack * 24 * 60));
   return d.toISOString();
 }
 
