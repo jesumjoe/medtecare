@@ -90,10 +90,16 @@ class MLService:
             # Additional generic sensor
             sensor_readings.append({"name": "Battery", "value": round(random.uniform(20, 100), 0), "unit": "%", "normalRange": [30, 100]})
 
+            device_name = row.get('device_name')
+            device_name = f"Medical Device {device_id}" if pd.isna(device_name) else str(device_name)
+            
+            classification = row.get('classification')
+            classification = 'Equipment' if pd.isna(classification) else str(classification)
+
             devices.append({
                 "id": device_id,
-                "name": str(row.get('device_name', f"Medical Device {device_id}")),
-                "type": str(row.get('classification', 'Equipment')),
+                "name": device_name,
+                "type": classification,
                 "location": "Ward " + str(random.randint(1, 10)),
                 "riskScore": risk_score,
                 "status": status,
@@ -160,20 +166,32 @@ class MLService:
                 {"feature": "years_in_service", "impact": 0.35}
             ]
             
+        device_name = row.get('device_name', 'Unknown Device')
+        device_name = 'Unknown Device' if pd.isna(device_name) else str(device_name)
+        
+        classification = row.get('classification', 'Active Equipment')
+        classification = 'Active Equipment' if pd.isna(classification) else str(classification)
+        
+        risk_class = row.get('risk_class', 'Class IIb')
+        risk_class = 'Class IIb' if pd.isna(risk_class) else str(risk_class)
+        
+        manufacturer = row.get('manufacturer', 'Unknown')
+        manufacturer = 'Unknown' if pd.isna(manufacturer) else str(manufacturer)
+
         payload = {
             "device_id": str(device_id),
-            "device_name": str(row.get('device_name', 'Unknown Device')),
-            "classification": str(row.get('classification', 'Active Equipment')),
-            "risk_class": str(row.get('risk_class', 'Class IIb')),
-            "manufacturer": str(row.get('manufacturer', 'Unknown')),
+            "device_name": device_name,
+            "classification": classification,
+            "risk_class": risk_class,
+            "manufacturer": manufacturer,
             "future_event_probability": proba,
             "prediction": prediction_val,
             "risk_level": risk_level,
             "model_confidence": 0.88, 
-            "previous_events": int(row.get('previous_events', 0)),
-            "previous_recalls": int(row.get('previous_recalls', 0)),
-            "previous_safety_notices": int(row.get('previous_safety_notices', 0)),
-            "years_in_service": float(row.get('years_in_service', 0.0)),
+            "previous_events": int(row.get('previous_events', 0)) if not pd.isna(row.get('previous_events')) else 0,
+            "previous_recalls": int(row.get('previous_recalls', 0)) if not pd.isna(row.get('previous_recalls')) else 0,
+            "previous_safety_notices": int(row.get('previous_safety_notices', 0)) if not pd.isna(row.get('previous_safety_notices')) else 0,
+            "years_in_service": float(row.get('years_in_service', 0.0)) if not pd.isna(row.get('years_in_service')) else 0.0,
             "feature_drivers": feature_drivers
         }
         return payload
